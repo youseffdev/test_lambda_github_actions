@@ -34,10 +34,10 @@ jobs:
         run: |
           curl https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction
           echo test, and deploy your project
-          set TEST11=TRILOGY
+          export xxx='TRILOGY'
             - name: Run a multi-line script
       - name: TESTA
-        if: ${{ env.TEST11=='TRILOGY'}}
+        if: ${{ TEST11=='TRILOGY'}}
         run: |
           echo TESTA
       - name: TESTB
