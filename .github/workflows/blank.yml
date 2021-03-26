@@ -35,10 +35,10 @@ jobs:
           response=$(curl https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction)
           echo ::set-output name=response::$response 
       - name: TESTA
-        if: ${{ outputs.response='"violation found!"'}}
+        if: ${{ output.response='"violation found!"'}}
         run: |
           echo TESTA
       - name: TESTB
-        if: ${{ outputs.response=='TRILOGY'}}
+        if: ${{ output.response=='TRILOGY'}}
         run: |
           echo TESTB   
