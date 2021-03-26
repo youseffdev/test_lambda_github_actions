@@ -37,10 +37,10 @@ jobs:
           export TEST11=TRILOGY
             - name: Run a multi-line script
       - name: TESTA
-        if: ${{ TEST11=='TRILOGY'}}
+        if: ${{ $TEST11=='TRILOGY'}}
         run: |
           echo TESTA
       - name: TESTB
-        if: ${{ TEST11=='TRILOGY'}}
+        if: ${{ $TEST11=='TRILOGY'}}
         run: |
           echo TESTB   
