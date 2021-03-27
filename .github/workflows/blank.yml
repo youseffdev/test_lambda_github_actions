@@ -28,9 +28,10 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo Hello, world!
-
-      - name: REST Recorder
-        uses: jirikuncar/recorder@v1
-        with:
-            endpoint: https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction
-            jq: '.'
+      
+      - name: test curl
+        id: call-lambda-
+        run: |
+          response=$(curl https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction)
+          echo ::set-output name=response::$response 
+      
