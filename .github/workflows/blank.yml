@@ -32,4 +32,3 @@ jobs:
       - name: REST Recorder
         uses: jirikuncar/recorder@v1
         endpoint: https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction
-        jq: '.' 
