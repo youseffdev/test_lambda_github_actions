@@ -33,5 +33,6 @@ jobs:
         id: call-lambda-
         run: |
           response=$(curl https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction)
-          echo ::set-output name=response::$response 
-      
+          echo "::set-output name=response::$response" 
+      - name: test-output
+        run: echo  "The output is ${{ outputs.response }}" 
