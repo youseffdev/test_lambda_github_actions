@@ -46,7 +46,7 @@ jobs:
         env:
           GGGG: ${{ steps.get_branches.outputs.data}}
         run: |
-          res=$(echo "$GGGG" | jq -r '.[] | {branch: .name}')
+          res=$(echo "$GGGG" | jq '.[] | {branch: .name}' | tr -d '\n' )
           echo "::set-output name=res::$res" 
       
       - name: test-output
