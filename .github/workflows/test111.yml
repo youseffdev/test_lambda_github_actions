@@ -1,61 +1,42 @@
-  
-# This is a basic workflow to help you get started with Actions
-#
-name: TTTTT
+# This is a basic workflow to help you get started with Actions 
+# should be triggered in every merge request regardless the base branch
+# Check if default branch is main/master
+# Check if merge is to default branch
+# Check if there is no develop branch 
+# nice to have: check if there is stale branches
 
-# Controls when the action will run. 
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+name: TBD compliance check
+# Triggers the workflow on each pull request events regardless of the branch.
+on: [pull_request, workflow_dispatch]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  TBD-compliance-check:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: check if default branch is not main or master
+        if: ${{!(github.event.repository.default_branch == 'main' || github.event.repository.default_branch == 'master')}}
+        run: exit 1            
         
+      - name: print context
+        id: cccc
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: 
+            echo "$GITHUB_CONTEXT"
+            
       - name: get branches          
         uses: octokit/request-action@v2.x
         id: get_branches
         with:
           route: GET /repos/{owner}/branches
           owner: ${{github.repository}}
-          repo: ''
+          repo: 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-          
-      - name: test
-        id: ggg
-        env:
-          GGGG: ${{ toJSON(steps.get_branches.outputs.data)}}
-        run: |
-          res=$(echo "${{$GGGG}}" | jq '.[] | {branch: .name}')
-          echo "::set-output name=res::$res" 
+      - run: "echo branches: ${{ toJSON(steps.get_branches.outputs.data) }}"  
       
-      - name: test-output
-        run: echo  "The output is ${{ steps.ggg.outputs.res }}" 
-        
-      - name: test curl
-        id: call-lambda
-        run: |
-          response=$(curl https://1om7t54t51.execute-api.us-east-1.amazonaws.com/default/TestAPIForGithubAction)
-          echo "::set-output name=response::$response" 
-      - name: test-output
-        run: echo  "The output is ${{ steps.call-lambda.outputs.response }}" 
+      - name: check if base branch of the pull request is not the default branch
+        if: github.event.repository.default_branch != github.base_ref
+        run: exit 1
