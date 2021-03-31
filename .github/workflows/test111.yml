@@ -1,11 +1,6 @@
   
 # This is a basic workflow to help you get started with Actions
 #
-#
-#
-#
-#
-#
 name: TTTTT
 
 # Controls when the action will run. 
@@ -45,7 +40,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - run: "echo ${{ toJSON(steps.get_branches.outputs.data)}}  | jq '.[] | {branch: .name}'"  
+      - run: |
+          res=$(echo toJSON(steps.get_branches.outputs.data)
+          echo "::set-output name=res::$res" 
       
       - name: check if base branch of the pull request is not the default branch
         if: github.event.repository.default_branch != github.base_ref
