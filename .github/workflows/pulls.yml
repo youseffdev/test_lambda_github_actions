@@ -22,18 +22,16 @@ jobs:
         id: cccc
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-          GITHUB_REPOSITORY: ${{ toJSON(github.repository) }}
-        run: |
-            echo ::set-env name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}'
+        run: 
             echo "$GITHUB_CONTEXT"
             
       - name: get branches          
         uses: octokit/request-action@v2.x
         id: get_branches
         with:
-          route: GET /repos/{owner}/{repo}/branches
-          owner: ${{github.repository_owner}}
-          repo: ${{steps.cccc.env.REPOSITORY_NAME}}
+          route: GET /repos/{owner}{repo}/branches
+          owner: ${{github.repository}}
+          repo: 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
