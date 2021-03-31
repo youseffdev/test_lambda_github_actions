@@ -40,10 +40,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
+          
       - name: test
         id: ggg
+        env:
+          GGGG: ${{ toJSON(steps.get_branches.outputs.data)}}
         run: |
-          res=$(echo "$toJSON(${{steps.get_branches.outputs.data}})")
+          res=$(echo "${{GGGG}}" | jq '.[] | {branch: .name}')
           echo "::set-output name=res::$res" 
       
       - name: test-output
