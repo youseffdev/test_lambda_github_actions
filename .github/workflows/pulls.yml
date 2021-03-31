@@ -19,7 +19,7 @@ jobs:
         run: exit 1            
         
       - name: print context
-        id:cccc
+        id: cccc
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
