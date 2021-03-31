@@ -5,5 +5,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail if default branch is not main or master
-        if: ${{github.event.repository.default_branch == 'main' || github.event.repository.default_branch == 'master'}}
+        if: ${{!(github.event.repository.default_branch == 'main' || github.event.repository.default_branch == 'master')}}
         run: exit 1
