@@ -25,7 +25,7 @@ jobs:
       - uses: octokit/request-action@v2.x
         id: get_latest_release
         with:
-          route: GET /repos/{owner}/{repo}/releases/latest
+          route: GET /repos/youseffdev/test_lambda_github_actions/releases/latest
           owner: octokit
           repo: request-action
         env:
