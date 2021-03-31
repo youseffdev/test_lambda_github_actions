@@ -27,6 +27,3 @@ jobs:
 
       - run: "echo branches: ${{ toJSON(steps.get_latest_release.outputs.data) }}"  
       
-      - name: check if base branch of the pull request is not the default branch
-        if: github.event.repository.default_branch != github.base_ref
-        run: exit 1
