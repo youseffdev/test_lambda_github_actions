@@ -6,7 +6,7 @@
 #
 #
 #
-name: CI
+name: TTTTT
 
 # Controls when the action will run. 
 on:
@@ -41,11 +41,11 @@ jobs:
         with:
           route: GET /repos/{owner}/branches
           owner: ${{github.repository}}
-          repo: 
+          repo: ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - run: "echo branches: ${{ toJSON(steps.get_branches.outputs.data) | jq '.[] | {branch: .name}' }}"  
+      - run: "echo ${{ toJSON(steps.get_branches.outputs.data)}}  | jq '.[] | {branch: .name}'"  
       
       - name: check if base branch of the pull request is not the default branch
         if: github.event.repository.default_branch != github.base_ref
