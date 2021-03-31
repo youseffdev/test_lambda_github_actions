@@ -26,7 +26,7 @@ jobs:
             echo "$GITHUB_CONTEXT"
             
       - name: get branches          
-      - uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v2.x
         id: get_branches
         with:
           route: GET /repos/{owner}/{repo}/branches
