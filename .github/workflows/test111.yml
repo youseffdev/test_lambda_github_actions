@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - run: |
-          res=$(echo ${{steps.get_branches.outputs.data}})
+          res=$(echo "${{steps.get_branches.outputs.data}}")
           echo "::set-output name=res::$res" 
       
       - name: test-output
