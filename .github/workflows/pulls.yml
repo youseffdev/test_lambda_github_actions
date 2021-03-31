@@ -19,6 +19,7 @@ jobs:
         run: exit 1            
         
       - name: print context
+        id:cccc
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
@@ -31,11 +32,11 @@ jobs:
         with:
           route: GET /repos/{owner}/{repo}/branches
           owner: ${{github.repository_owner}}
-          repo: ${{$REPOSITORY_NAME}}
+          repo: ${{steps.cccc.env.REPOSITORY_NAME}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - run: "echo branches: ${{ toJSON(steps.get_latest_release.outputs.data) }}"  
+      - run: "echo branches: ${{ toJSON(steps.get_branches.outputs.data) }}"  
       
       - name: check if base branch of the pull request is not the default branch
         if: github.event.repository.default_branch != github.base_ref
