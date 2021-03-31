@@ -16,8 +16,9 @@ jobs:
     steps:
       - name: check if default branch is not main or master
         if: ${{!(github.event.repository.default_branch == 'main' || github.event.repository.default_branch == 'master')}}
-        run: echo "violation found: Default branch is not main or master"
-        run: exit 1
+        run: |
+            echo "violation found Default branch is not main or master"
+            exit 1
      - name: check if default branch is not main or master
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
