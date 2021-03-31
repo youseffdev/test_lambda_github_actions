@@ -22,11 +22,12 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
+
       - uses: octokit/request-action@v2.x
         id: get_latest_release
         with:
-          route: GET /repos/youseffdev/test_lambda_github_actions/branches
-          owner: octokit
+          route: GET /repos/{owner}/branches/
+          owner: ${{github.repository}}
           repo: request-action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
