@@ -25,21 +25,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-        
+       
       - name: get branches          
         uses: octokit/request-action@v2.x
         id: get_branches
         with:
           route: GET /repos/{owner}/branches
           owner: ${{github.repository}}
-          repo: ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
           
       - name: test
         id: ggg
