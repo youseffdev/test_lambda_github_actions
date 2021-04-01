@@ -35,12 +35,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: test
-        id: ggg
+      - name: process the list of branches
+        id: ls
         env:
           GGGG: ${{ steps.get_branches.outputs.data}}
         run: |
-          res=$(echo "$GGGG" | jq '.[] | {branch: .name}' | tr -d '\n' )
+          res=$(echo "$steps.get_branches.outputs.data" | jq '.[] | {branch: .name}' | tr -d '\n' )
           echo "::set-output name=res::$res" 
       
       - name: test-output
