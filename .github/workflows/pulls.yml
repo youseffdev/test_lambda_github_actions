@@ -20,7 +20,7 @@ jobs:
         if: github.event.repository.default_branch != github.base_ref
         run: exit 1
         
-     - name: get branches (Internal preparation step)          
+      - name: get branches (Internal preparation step)          
         uses: octokit/request-action@v2.x
         id: get_branches
         with:
