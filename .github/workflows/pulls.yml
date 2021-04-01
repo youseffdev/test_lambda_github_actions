@@ -36,15 +36,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: process the list of branches
-        id: ls
+        id: process_branches_id
         env:
-          GGGG: ${{ steps.get_branches.outputs.data}}
+          BRNACHES: ${{ steps.get_branches.outputs.data}}
         run: |
-          res=$(echo "${{ steps.get_branches.outputs.data}}" | jq '.[] | {branch: .name}' | tr -d '\n' )
-          echo "::set-output name=res::$res" 
+          res=$(echo "$BRNACHES" | jq '.[] | {branch: .name}' | tr -d '\n' )
+          echo "::set-output name=branches::$res" 
       
       - name: test-output
-        run: echo  "The output is ${{ steps.ggg.outputs.res }}" 
+        run: echo  "The output is ${{ steps.process_branches_id.outputs.branches }}" 
         
       - name: test curl
         id: call-lambda
