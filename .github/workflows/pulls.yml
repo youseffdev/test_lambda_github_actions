@@ -4,7 +4,7 @@
 # Check if merge is to default branch
 # Check if there is no develop branch 
 
-name: TBD compliance check
+name: TBD compliance check2
 # Triggers the workflow on each pull request events regardless of the branch.
 on: [pull_request, workflow_dispatch]
 
@@ -19,7 +19,7 @@ jobs:
       - name: check if base branch of the pull request is not the default branch
         if: github.event.repository.default_branch != github.base_ref
         run: exit 1
-
+        
       - name: get branches (Internal preparation step)          
         uses: octokit/request-action@v2.x
         id: get_branches
@@ -38,5 +38,5 @@ jobs:
           echo "::set-output name=branches::$res" 
       
       - name: fail if develop branch exist
-        if: contains(steps.get_branches.outputs.data, 'develop')
+        if: contains(steps.process_branches_id.outputs.branches, 'develop')
         run: exit 1
