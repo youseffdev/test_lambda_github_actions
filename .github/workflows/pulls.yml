@@ -20,13 +20,14 @@ jobs:
         if: github.event.repository.default_branch != github.base_ref
         run: exit 1
         
+      
       - name: get branches (Internal preparation step)          
         uses: octokit/request-action@v2.x
         id: get_branches
         with:
           route: GET /repos/{owner}/branches
           owner: ${{github.repository}}
-        env:
+        env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: process the list of branches (Internal preparation step)
