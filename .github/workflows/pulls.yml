@@ -47,7 +47,7 @@ jobs:
         run: echo  "The output is ${{ steps.process_branches_id.outputs.branches }}" 
 
       - name: fail if develop branch exist
-        if: contains(steps.get_branches.outputs.data, 'main')
+        if: contains(steps.get_branches.outputs.data, 'develop')
         run: exit 1
         
       - name: test curl
