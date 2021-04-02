@@ -5,7 +5,7 @@
 # Check if there is no develop branch 
 # nice to have: check if there is stale branches
 
-name: TBD compliance check
+name: print context
 # Triggers the workflow on each pull request events regardless of the branch.
 on: [pull_request, workflow_dispatch]
 
@@ -21,6 +21,4 @@ jobs:
       - name: print context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: |
-          echo ::set-env name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}'
-          echo "$GITHUB_CONTEXT"
+        run: echo "$GITHUB_CONTEXT"
