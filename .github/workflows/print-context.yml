@@ -21,22 +21,6 @@ jobs:
       - name: print context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-          run: |
-            echo ::set-env name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}'
-            echo "$GITHUB_CONTEXT"
-
-      - name: get the branches
-        uses: octokit/request-action@v2.x
-        id: get_branches
-        with:
-          route: GET /repos/{owner}/{repo}/branches
-          owner: ${{github.repository_owner}}
-          repo: ${{$REPOSITORY_NAME}}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - run: "echo branches: ${{ toJSON(steps.get_latest_release.outputs.data) }}"  
-
-      - name: check if base branch of the pull request is not the default branch
-        if: github.event.repository.default_branch != github.base_ref
-        run: exit 1
+        run: |
+          echo ::set-env name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}'
+          echo "$GITHUB_CONTEXT"
