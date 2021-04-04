@@ -1,0 +1,14 @@
+name: SE7 Engineering Standards
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  enforce-eng-standards:
+    name: Enforce standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check compliance
+        uses: youseffdev/eng.compliance.action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ENG_STD_TOKEN }}
+          FORCE_COLOR: 3
