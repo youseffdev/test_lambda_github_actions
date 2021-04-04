@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check compliance
-        uses: youseffdev/eng.compliance.action@v1
+        uses: youseffdev/eng.compliance.action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.ENG_STD_TOKEN }}
           FORCE_COLOR: 3
