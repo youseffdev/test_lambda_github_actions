@@ -1,0 +1,24 @@
+# This is a basic workflow to help you get started with Actions 
+# should be triggered in every merge request
+# Check if default branch is main/master
+# Check if merge is to default branch
+# Check if there is no develop branch 
+
+name: TBD compliance check
+# Triggers the workflow on each pull request events regardless of the branch.
+on: [workflow_dispatch]
+
+jobs:
+  TBD-compliance-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: process the list of branches (Internal preparation step)
+        id: process_branch_ids
+        env:
+        run: |
+         
+          echo "::set-output name=branches::GGGG_${{github.event_name^^}}" 
+      
+      - name: fail if develop branch exist
+        run: |
+          echo ${{steps.process_branch_ids.outputs.branches}}
