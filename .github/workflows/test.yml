@@ -14,7 +14,6 @@ jobs:
     steps:
       - name: process the list of branches (Internal preparation step)
         id: process_branch_ids
-        env:
         run: |
          
           echo "::set-output name=branches::GGGG_${{github.event_name^^}}" 
