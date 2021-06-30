@@ -14,10 +14,11 @@ jobs:
     steps:
       - name: process the list of branches (Internal preparation step)
         id: process_branch_ids
+        env:
+          BRANCHES: ${{github.event_name}}
         run: |
-         
-          echo "::set-output name=branches::GGGG_${{github.event_name^^}}" 
+          echo "::set-output name=branch::GGGG_${BRANCHES^^}" 
       
       - name: fail if develop branch exist
         run: |
-          echo ${{steps.process_branch_ids.outputs.branches}}
+          echo ${{steps.process_branch_ids.outputs.branch}}
