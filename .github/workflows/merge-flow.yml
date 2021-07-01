@@ -16,7 +16,7 @@ on:
 jobs:
   MERGE-check:
    runs-on: ubuntu-latest
-    if: ${{github.event.pull_request.merged == true}}
+    if: ${{github.event.pull_request.merged == 'true'}}
     steps:
       - name: process the list of branches (Internal preparation step)
         id: process_branch_ids
