@@ -66,14 +66,15 @@ jobs:
           PULL: ${{steps.auto-merge.outputs.result}}
         run: |
           echo "$PULL"
-          val = $(echo "$PULL"  |  jq '.valid // empty ' )
-          res=$(echo "$PULL"  |  jq '.pull.title // empty ' )
+          val=$(echo "$PULL"  |  jq '.valid // empty' )
+          res=$(echo "$PULL"  |  jq '.pull.title // empty' )
           res1=$(echo "$PULL" |  jq '.pull.html_url // empty'  )
-          res2=$(echo "$PULL" |  jq '.issueKey' // empty)
+          res2=$(echo "$PULL" |  jq '.issueKey // empty')
           
           echo "::set-output name=title::$res" 
           echo "::set-output name=html::$res1" 
           echo "::set-output name=issue::$res2"
+          echo "::set-output name=valid ::$val"
       - name: 'print deployment candidate PR title'
         if:  steps.aaa.outputs.valid == 1
         run: echo "${{steps.aaa.outputs.title}}"
