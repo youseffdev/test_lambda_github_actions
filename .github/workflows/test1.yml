@@ -59,6 +59,7 @@ jobs:
               return '0';
             }   
       - name: 'echo'
+        id: aaa
         env:
           PULL: ${{ steps.auto-merge.outputs.result }}
         run: |
@@ -75,8 +76,8 @@ jobs:
           echo 'Nothing to deploy.'
           exit 0
       - name: 'print deployment candidate PR title'
-        run: echo "${{steps.auto-merge.outputs.title}}"
+        run: echo "${{steps.aaa.outputs.title}}"
       - name: 'print deployment candidate PR HTML'
-        run: echo "${{steps.auto-merge.outputs.html}}"
+        run: echo "${{steps.aaa.outputs.html}}"
       - name: 'print deployment candidate PR issue'
-        run: echo "${{steps.auto-merge.outputs.issue}}"
+        run: echo "${{steps.aaa.outputs.issue}}"
