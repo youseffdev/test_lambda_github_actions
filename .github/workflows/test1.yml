@@ -33,6 +33,29 @@ jobs:
             const pulls = (await github.pulls.list({ owner, repo, state: "open", base: "main" })).data;
             console.info(`Open PRs: ${pulls.map(p => p.number)}`);
             for (const pull of pulls) {
+            
+         
+            
+             for await (const response of github.paginate.iterator(
+              github.pulls.listFiles,
+              {
+                owner: owner,
+                repo: repo, 
+                pull_number: pull.number
+              }
+            )) {
+
+               console.info(`PR #${pull.number}: ${response}`);
+              // do whatever you want with each response, break out of the loop, etc.
+
+            }           
+            
+            
+            
+            
+            
+            
+            
               const matches = pull.title.match(jiraKeyRegex);
               if (!matches) {
                 console.info(`PR #${pull.number}: title does not contain a ticket key. SKIP.`);
