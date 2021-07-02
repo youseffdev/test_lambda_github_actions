@@ -20,7 +20,7 @@ jobs:
         id: auto-merge
         uses: actions/github-script@v4
         with:
-          result-encoding: JSON
+          result-encoding: json
           script: |
             const axios = require("axios");
             const nodemailer = require("nodemailer");
