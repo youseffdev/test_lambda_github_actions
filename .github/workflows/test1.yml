@@ -67,7 +67,7 @@ jobs:
       - name: 'echo'
         id: aaa
         env:
-          PULL: ${{ steps.auto-merge.outputs.result }}
+          PULL: ${{ fromJSON(steps.auto-merge.outputs.result) }}
         run: |
           echo "$PULL"
           res=$(echo "$PULL" |  jq '.pull.title' )
