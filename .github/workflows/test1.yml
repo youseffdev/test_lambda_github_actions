@@ -20,7 +20,6 @@ jobs:
         id: auto-merge
         uses: actions/github-script@v4
         with:
-          //github-token: ${{secrets.LAMBDA_TOKEN}}
           result-encoding: string
           script: |
             const axios = require("axios");
