@@ -58,6 +58,12 @@ jobs:
             } else {
               return '0';
             }   
+        
+      - name: 'fiish if there is pending deployment ticket'
+        if: steps.auto-merge.outputs.result == '0'
+        run: |
+          echo 'Nothing to deploy.'
+          exit 0
       - name: 'echo'
         id: aaa
         env:
@@ -70,11 +76,6 @@ jobs:
           echo "::set-output name=title::$res" 
           echo "::set-output name=html::$res1" 
           echo "::set-output name=issue::$res2"
-      - name: 'fiish if there is pending deployment ticket'
-        if: steps.auto-merge.outputs.result == '0'
-        run: |
-          echo 'Nothing to deploy.'
-          exit 0
       - name: 'print deployment candidate PR title'
         run: echo "${{steps.aaa.outputs.title}}"
       - name: 'print deployment candidate PR HTML'
