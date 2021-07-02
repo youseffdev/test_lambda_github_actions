@@ -6,10 +6,7 @@
 
 name: MERGE FLOW CHECK
 # Triggers the workflow on each pull request events regardless of the branch.
-on: [workflow_dispatch pull_request]
-  workflow_dispatch: 
-  pull_request:
-
+on: [workflow_dispatch, pull_request]
 jobs:
   MERGE-check:
     runs-on: ubuntu-latest
