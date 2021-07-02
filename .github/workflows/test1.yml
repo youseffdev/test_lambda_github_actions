@@ -39,17 +39,17 @@ jobs:
                 console.info(`PR #${pull.number}: title does not contain a ticket key. SKIP.`);
                 continue;
               }
-                   let candidate = {
-                    "pull": pull,
-                    "labels": issue.fields.labels,
-                    "issueKey": issueKey
-                  }
-                  pullsCandidateForDeployment.push(candidate);
+              let candidate = {
+               "pull": pull,
+               "labels": [],
+               "issueKey": 'LAMBDA-1414'
+               }
+               pullsCandidateForDeployment.push(candidate);
 
-            }
-		       let candidate = null
-            // in case candidate == null (no PR without "pending-deployment) but pullsCandidateForDeployment is not empty, choose random pull request
-            // This is the case where we all pending PR failed deployment at their 1st attempt. we don't want to keep trying the same one.             
+             }
+	    let candidate = null;
+#            //in case candidate == null (no PR without "pending-deployment) but pullsCandidateForDeployment is not empty, choose random pull request
+#            //This is the case where we all pending PR failed deployment at their 1st attempt. we don't want to keep trying the same one.             
             if (pullsCandidateForDeployment.length > 0) {
                 const idx = Math.floor(Math.random() * pullsCandidateForDeployment.length);
                 candidate = pullsCandidateForDeployment[idx];
@@ -58,8 +58,7 @@ jobs:
               return JSON.stringify(pullsCandidateForDeployment[0])
             } else {
               return "0";
-            }
-      
+            }   
       - name: 'check if there is pending deployment ticket'
         if: steps.auto-merge.outputs.result == "0"
         run: |
