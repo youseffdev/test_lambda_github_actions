@@ -16,15 +16,15 @@ on:
 jobs:
   MERGE-check:
     runs-on: ubuntu-latest
-      if: ${{ github.event.pull_request.merged == true }}
-      steps:
-        - name: process the list of branches (Internal preparation step)
-          id: process_branch_ids
-          env:
-            BRANCHES: ${{github.event_name}}
-          run: |
-            echo "::set-output name=branch::GGGG_${BRANCHES^^}" 
-        - name: fail always
-          id: fail_always
-          run: |
-            exit 1
+    if: ${{ github.event.pull_request.merged == true }}
+    steps:
+      - name: process the list of branches (Internal preparation step)
+        id: process_branch_ids
+        env:
+          BRANCHES: ${{github.event_name}}
+        run: |
+          echo "::set-output name=branch::GGGG_${BRANCHES^^}" 
+      - name: fail always
+        id: fail_always
+        run: |
+          exit 1
