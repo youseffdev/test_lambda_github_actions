@@ -11,7 +11,7 @@ on:
   pull_request:
     branches:
       - master
-    types: [closed]
+    types: [opened closed]
 
 jobs:
   MERGE-check:
@@ -28,3 +28,13 @@ jobs:
         id: fail_always
         run: |
           exit 1
+  OTHERS:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged != true }}
+    steps:
+      - name: process the list of branches (Internal preparation step)
+        id: process_branch_ids
+        env:
+          BRANCHES: ${{github.event_name}}
+        run: |
+          echo "${BRANCHES^^}" 
