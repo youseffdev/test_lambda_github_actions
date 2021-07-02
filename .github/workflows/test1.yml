@@ -66,7 +66,7 @@ jobs:
           PULL: ${{steps.auto-merge.outputs.result}}
         run: |
           echo "$PULL"
-          val = $(echo "$PULL"  |  jq 'valid // empty ' )
+          val = $(echo "$PULL"  |  jq '.valid // empty ' )
           res=$(echo "$PULL"  |  jq '.pull.title // empty ' )
           res1=$(echo "$PULL" |  jq '.pull.html_url // empty'  )
           res2=$(echo "$PULL" |  jq '.issueKey' // empty)
