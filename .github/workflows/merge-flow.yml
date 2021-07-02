@@ -9,8 +9,6 @@ name: MERGE FLOW CHECK
 on:
   workflow_dispatch: 
   pull_request:
-    branches:
-      - master
     types: [opened closed]
 
 jobs:
