@@ -66,4 +66,4 @@ jobs:
           exit 0
             - name: 'check if there is pending deployment ticket'
       - name: 'print deployment candidate PR title'
-      - run: echo "${{steps.auto-merge.outputs.result.issueKey}}"
+        run: echo "${{steps.auto-merge.outputs.result.issueKey}}"
