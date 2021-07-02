@@ -62,12 +62,13 @@ jobs:
         env:
           PULL: ${{ steps.get_branches.outputs.data }}
         run: |
-          echo ${{steps.auto-merge.outputs.result}}
+          echo "$PULL"
           res=$(echo "$PULL" |  jq '.pull.title' )
-          echo "::set-output name=title::$res" 
           res1=$(echo "$PULL" |  jq '.pull.html_url' )
+          res2=$(echo "$PULL" |  jq '.issueKey' )
           echo "::set-output name=title::$res" 
           echo "::set-output name=html::$res1" 
+          echo "::set-output name=issue::$res2"
       - name: 'fiish if there is pending deployment ticket'
         if: steps.auto-merge.outputs.result == '0'
         run: |
@@ -77,3 +78,5 @@ jobs:
         run: echo "${{steps.auto-merge.outputs.title}}"
       - name: 'print deployment candidate PR HTML'
         run: echo "${{steps.auto-merge.outputs.html}}"
+      - name: 'print deployment candidate PR issue'
+        run: echo "${{steps.auto-merge.outputs.issue}}"
