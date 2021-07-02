@@ -1,0 +1,70 @@
+name: Auto-release for accepted tickets
+concurrency:
+  group: auto_deploy_release_action
+  cancel-in-progress: false
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  enable-automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install npm packages
+        run: |
+          npm i axios
+          npm i nodemailer
+
+      - name: auto merge ready (deployed) tickets
+        id: auto-merge
+        uses: actions/github-script@v4
+        with:
+          //github-token: ${{secrets.LAMBDA_TOKEN}}
+          result-encoding: string
+          script: |
+            const axios = require("axios");
+            const nodemailer = require("nodemailer");
+            const jiraKeyRegex = new RegExp('LAMBDA-[0-9]+', 'gim');
+            const prNumberRegex = new RegExp('(.+pull\/)(\d+)(.*)', 'gim');
+            const {owner, repo} = context.repo;
+            let pullsCandidateForDeployment = [];
+            
+            
+            const pulls = (await github.pulls.list({ owner, repo, state: "open", base: "master" })).data;
+            console.info(`Open PRs: ${pulls.map(p => p.number)}`);
+            for (const pull of pulls) {
+              const matches = pull.title.match(jiraKeyRegex);
+              if (!matches) {
+                console.info(`PR #${pull.number}: title does not contain a ticket key. SKIP.`);
+                continue;
+              }
+                   let candidate = {
+                    "pull": pull,
+                    "labels": issue.fields.labels,
+                    "issueKey": issueKey
+                  }
+                  pullsCandidateForDeployment.push(candidate);
+
+            }
+		       let candidate = null
+            // in case candidate == null (no PR without "pending-deployment) but pullsCandidateForDeployment is not empty, choose random pull request
+            // This is the case where we all pending PR failed deployment at their 1st attempt. we don't want to keep trying the same one.             
+            if (pullsCandidateForDeployment.length > 0) {
+                const idx = Math.floor(Math.random() * pullsCandidateForDeployment.length);
+                candidate = pullsCandidateForDeployment[idx];
+            }
+            if (candidate != null ) {
+              return JSON.stringify(pullsCandidateForDeployment[0])
+            } else {
+              return "0";
+            }
+      
+      - name: 'check if there is pending deployment ticket'
+        if: steps.auto-merge.outputs.result == "0"
+        run: |
+          echo 'Nothing to deploy.'
+          exit 0
+            - name: 'check if there is pending deployment ticket'
+      - name: 'print deployment candidate PR title'
+      - run: echo "${{steps.auto-merge.outputs.result.issueKey}}"
