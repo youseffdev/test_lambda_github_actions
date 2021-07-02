@@ -63,9 +63,9 @@ jobs:
           PULL: ${{ steps.get_branches.outputs.data }}
         run: |
           echo ${{steps.auto-merge.outputs.result}}
-          res=$(echo "$PULL" |  jq '.title' )
+          res=$(echo "$PULL" |  jq '.pull.title' )
           echo "::set-output name=title::$res" 
-          res1=$(echo "$PULL" |  jq '.html_url' )
+          res1=$(echo "$PULL" |  jq '.pull.html_url' )
           echo "::set-output name=title::$res" 
           echo "::set-output name=html::$res1" 
       - name: 'fiish if there is pending deployment ticket'
