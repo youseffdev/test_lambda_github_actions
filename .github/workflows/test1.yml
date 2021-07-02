@@ -58,6 +58,10 @@ jobs:
             } else {
               return '0';
             }   
+      - name: 'echo'
+        run: |
+          echo ${{steps.auto-merge.outputs.result}}
+          
       - name: 'check if there is pending deployment ticket'
         if: steps.auto-merge.outputs.result == '0'
         run: |
