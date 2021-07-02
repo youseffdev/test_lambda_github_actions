@@ -45,7 +45,11 @@ jobs:
               }
             )) {
 
-               console.info(`PR #${pull.number}: ${response}`);
+               console.info(`PR #${pull.number}: ${response.data}`);
+               
+               for (const file of response.data) {
+               console.info(file.filename);
+               }
               // do whatever you want with each response, break out of the loop, etc.
 
             }           
