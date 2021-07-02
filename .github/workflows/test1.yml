@@ -60,7 +60,7 @@ jobs:
             }   
       - name: 'echo'
         env:
-          PULL: ${{ steps.get_branches.outputs.data }}
+          PULL: ${{ steps.auto-merge.outputs.result }}
         run: |
           echo "$PULL"
           res=$(echo "$PULL" |  jq '.pull.title' )
