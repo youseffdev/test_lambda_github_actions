@@ -20,7 +20,7 @@ jobs:
         id: auto-merge
         uses: actions/github-script@v4
         with:
-          result-encoding: string
+          result-encoding: json
           script: |
             const axios = require("axios");
             const nodemailer = require("nodemailer");
@@ -60,17 +60,17 @@ jobs:
             }   
         
       - name: 'fiish if there is pending deployment ticket'
-        if: steps.auto-merge.outputs.result == '0'
+        if: ${{steps.auto-merge.outputs.result == fromJSON('0')}}
         run: |
           echo 'Nothing to deploy.'
           exit 0
       - name: 'echo'
         id: aaa
         env:
-          PULL: ${{ fromJSON(steps.auto-merge.outputs.result) }}
+          PULL: ${{steps.auto-merge.outputs.result}}
         run: |
           echo "$PULL"
-          res=$(echo "$PULL" |  jq '.pull.title' )
+          res=$(echo "$PULL"  |  jq '.pull.title' )
           res1=$(echo "$PULL" |  jq '.pull.html_url' )
           res2=$(echo "$PULL" |  jq '.issueKey' )
           echo "::set-output name=title::$res" 
