@@ -41,7 +41,8 @@ jobs:
               let candidate = {
                "pull": pull,
                "labels": [],
-               "issueKey": 'LAMBDA-1414'
+               "issueKey": 'LAMBDA-1414',
+               "valid" : 1
                }
                pullsCandidateForDeployment.push(candidate);
 
@@ -56,29 +57,29 @@ jobs:
             if (candidate != null ) {
               return pullsCandidateForDeployment[0]
             } else {
-              return '0';
+              return {"valid": 0};
             }   
         
-      - name: 'fiish if there is pending deployment ticket'
-        if: ${{steps.auto-merge.outputs.result == fromJSON('0')}}
-        run: |
-          echo 'Nothing to deploy.'
-          exit 0
       - name: 'echo'
         id: aaa
         env:
           PULL: ${{steps.auto-merge.outputs.result}}
         run: |
           echo "$PULL"
-          res=$(echo "$PULL"  |  jq '.pull.title' )
-          res1=$(echo "$PULL" |  jq '.pull.html_url' )
-          res2=$(echo "$PULL" |  jq '.issueKey' )
+          val = $(echo "$PULL"  |  jq 'valid // empty ' )
+          res=$(echo "$PULL"  |  jq '.pull.title // empty ' )
+          res1=$(echo "$PULL" |  jq '.pull.html_url // empty'  )
+          res2=$(echo "$PULL" |  jq '.issueKey' // empty)
+          
           echo "::set-output name=title::$res" 
           echo "::set-output name=html::$res1" 
           echo "::set-output name=issue::$res2"
       - name: 'print deployment candidate PR title'
+        if:  steps.aaa.outputs.valid == 1
         run: echo "${{steps.aaa.outputs.title}}"
       - name: 'print deployment candidate PR HTML'
+        if:  steps.aaa.outputs.valid == 1
         run: echo "${{steps.aaa.outputs.html}}"
       - name: 'print deployment candidate PR issue'
+        if:  steps.aaa.outputs.valid == 1
         run: echo "${{steps.aaa.outputs.issue}}"
