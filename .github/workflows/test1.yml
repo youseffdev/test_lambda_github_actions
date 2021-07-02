@@ -20,7 +20,7 @@ jobs:
         id: auto-merge
         uses: actions/github-script@v4
         with:
-          result-encoding: string
+          result-encoding: JSON
           script: |
             const axios = require("axios");
             const nodemailer = require("nodemailer");
@@ -54,7 +54,7 @@ jobs:
                 candidate = pullsCandidateForDeployment[idx];
             }
             if (candidate != null ) {
-              return JSON.stringify(pullsCandidateForDeployment[0])
+              return pullsCandidateForDeployment[0]
             } else {
               return '0';
             }   
