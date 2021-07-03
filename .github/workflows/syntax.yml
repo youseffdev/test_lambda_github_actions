@@ -240,7 +240,8 @@ jobs:
       - name: 'Checkout source code'
         if: ${{ steps.pending-deployment.outputs.value }}
         uses: actions/checkout@v2
-        ref: ${{steps.script-output.outputs.branch}}
+        with:
+          ref: ${{steps.script-output.outputs.branch}}
       - name: "Look for manifest file"
         id: get-manifest-file-existence
         if: ${{ steps.pending-deployment.outputs.value }}
