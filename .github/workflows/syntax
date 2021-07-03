@@ -1,0 +1,356 @@
+name: Auto-release for accepted tickets
+concurrency:
+  group: auto_deploy_release_action
+  cancel-in-progress: false
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  enable-automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install npm packages
+        run: |
+          npm i axios
+          npm i nodemailer
+
+      - name: auto merge ready (deployed) tickets
+        id: auto-merge
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{secrets.LAMBDA_TOKEN}}
+          result-encoding: json
+          script: |
+            const axios = require("axios");
+            const nodemailer = require("nodemailer");
+            const jiraKeyRegex = new RegExp('LAMBDA-[0-9]+', 'gim');
+            const prNumberRegex = new RegExp('(.+pull\/)(\d+)(.*)', 'gim');
+            const manifestRegex = new RegExp('.*sfdx\/manifest\/LAMBDA-[0-9]+\.xml', 'gim');
+            const {owner, repo} = context.repo;
+            const jiraToken = Buffer.from("${{secrets.JIRA_MILOS_AUTH}}").toString('base64');
+            let pullsCandidateForDeployment = [];
+            async function updateLabelToIssue(issueKey, action, label, pullNumber) {
+            try {
+                  await axios.put(`https://rapid-engineering.atlassian.net/rest/api/latest/issue/${issueKey}`,
+                    { "update": { "labels": [ { [action]: label } ] } },
+                    { headers: { Authorization: `Basic ${jiraToken}` } }
+                  );
+                } catch(e) {
+                  console.error(`PR #${pullNumber}: can't add label to Jira ticket ${issueKey}. ${e.message}. `);
+                }
+            }
+
+            const mailer = nodemailer.createTransport({
+              host: "${{secrets.SMTP_HOST}}",
+              port: ${{secrets.SMTP_PORT}},
+              secure: true,
+              auth: {
+                user: "${{secrets.SMTP_USERNAME}}",
+                pass: "${{secrets.SMTP_PASSWORD}}"
+              }
+            });
+
+            const pulls = (await github.pulls.list({ owner, repo, state: "open", base: "master" })).data;
+            console.info(`Open PRs: ${pulls.map(p => p.number)}`);
+            for (const pull of pulls) {
+              const matches = pull.title.match(jiraKeyRegex);
+              if (!matches) {
+                console.info(`PR #${pull.number}: title does not contain a ticket key. SKIP.`);
+                continue;
+              }
+
+              const labels = await github.issues.listLabelsOnIssue({ owner, repo, issue_number: pull.number });
+              if (labels.data.some(l => l.name === "no auto-release")) {
+                console.info(`PR #${pull.number}: labeled with 'no auto-release'. SKIP.`);
+                continue;
+              }
+              
+              // TODO - REMOVE THIS AFTER PILOT
+              
+              if (!labels.data.some(l => l.name === "CICD-production-pilot")) {
+                console.info(`PR #${pull.number}: is not part of the pilot. SKIP.`);
+                continue;
+              }
+              
+              // END OF CODE TO REMOVE AFTER PILOT
+
+              const issueKey = matches[0];
+              const issue = (await axios.get(`https://rapid-engineering.atlassian.net/rest/api/latest/issue/${issueKey}`, {
+                headers: { Authorization: `Basic ${jiraToken}` }
+              })).data;
+
+              if (issue.fields.resolution && issue.fields.resolution.name === 'Rejected') {
+                console.info(`PR #${pull.number}: ticket is Rejected. CLOSE PR.`);
+                await github.pulls.update({ owner, repo, pull_number: pull.number, state: 'closed' });
+                continue;
+              }
+              }
+
+              let isDependantTicketNotDeployed = false;
+              for (const issueLink of issue.fields.issuelinks) {
+                if (issueLink.outwardIssue && (issueLink.type.outward == 'depends on' || issueLink.type.outward == 'is blocked by')) {
+                  const linkedTicket = (await axios.get(`https://rapid-engineering.atlassian.net/rest/api/latest/issue/${issueLink.outwardIssue.key}`,
+                                    {headers: { Authorization: `Basic ${jiraToken}` }})).data;
+
+                  if (linkedTicket.fields.status.name !== 'Exception' && linkedTicket.fields.status.name !== 'Canceled' &&
+                      (!linkedTicket.fields.resolution || linkedTicket.fields.resolution.name !== 'Accepted')) {
+                    console.info(`PR #${pull.number}: dependant on ticket is not Accepted yet. SKIP.`);
+                    isDependantTicketNotDeployed = true;
+                    break;
+                  }
+
+                  if (linkedTicket.fields.customfield_10217 && prNumberRegex.test(linkedTicket.fields.customfield_10217)) {
+                    const linkedTicketPullNumber = prNumberRegexprNumberRegex.exec(linkedTicket.fields.customfield_10217)[2];
+                    const linkedTicketPullData = (await github.pulls.get({ owner, repo, pull_number: linkedTicketPullNumber })).data;
+
+                    if (!linkedTicketPullData.merged) {
+                      console.info(`PR #${pull.number}: dependant on ticket is not Merged yet. SKIP.`);
+                      isDependantTicketNotDeployed = true;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              if (isDependantTicketNotDeployed) {
+                await updateLabelToIssue(issueKey, 'add', 'pending-dependencies', pull.number);
+                continue;
+              }
+
+              if (!issue.fields.resolution || issue.fields.resolution.name !== 'Accepted') {
+                console.info(`PR #${pull.number}: ticket is not Accepted yet. SKIP.`);
+                continue;
+              }
+
+              if ((issue.fields.customfield_10165 && issue.fields.customfield_10165.value === 'Yes') ||
+                  issue.fields.issuelinks.some(l => l.type.inward === 'Previous iteration of' && l.inwardIssue)) {
+                console.info(`PR #${pull.number}: ticket has next iteration (Accept&Iterate flow). SKIP.`);
+                continue;
+              }
+              
+              let hasManifiestFile = false;
+              for await (const response of github.paginate.iterator(
+                github.pulls.listFiles,
+                {
+                  owner: owner,
+                  repo: repo, 
+                  pull_number: pull.number
+                }
+              )) {
+              
+                  for (const file of response.data) {
+                    console.info(file.filename);
+                    const matches = file.filename.match(manifestRegex);
+                    if (!!matches) {
+                      console.info(`PR #${pull.number}: manifest file is included in the PR`);
+                      hasManifiestFile = true;  
+                      break;
+                    }
+                  }         
+
+              const pullData = (await github.pulls.get({ owner, repo, pull_number: pull.number })).data;
+              if (pullData.mergeable && (pullData.mergeable_state === 'clean' || pullData.mergeable_state === 'unstable')) {
+                console.info(`PR #${pull.number}: ticket Accepted and PR is mergeable. Check if deployed or ready for merge.`);
+                try {
+				          if (issue.fields.labels.some(l=> (l ==='deployeddeployed')) || !hasManifiestFile ) {
+					        console.info(`PR #${pull.number}: ticket is Deployed or don't have manifest file. MERGE.`);
+                  await github.pulls.merge({ owner, repo, pull_number: pull.number });
+                  await updateLabelToIssue(issueKey, 'remove', 'pending-dependencies', pull.number);
+                  await updateLabelToIssue(issueKey, 'add', 'auto-released', pull.number);
+                  await updateLabelToIssue(issueKey, 'remove', 'pending-deployment', pull.number);
+				      } else {
+				          console.info(`PR #${pull.number}: ticket is Accepted and PR is mergeable. But not yet deployed.`);
+                  let candidate = {
+                   "pull": pull,
+                   "issueKey": issueKey,
+                   "valid" : 1
+                   }
+                   pullsCandidateForDeployment.push(candidate);
+				      }
+                  continue;
+                } catch(e) {
+                  console.error(`PR #${pull.number}: the merge attempt failed. ${e.message}. `);
+                }
+              } else {
+                console.info(`PR #${pull.number}: ticket Accepted but PR is not mergeable yet. SKIP.`);
+              }
+            }
+		        // In each run (10 minutes), we will pick one ticket for deployment.
+		        // To avoid starvation ticket due to one ticket keep failing, give priorty to other ticket before retrying the same tickets.
+            let candidate = null;
+            for (const pullCandidate of pullsCandidateForDeployment) {
+              if (!pullCandidate.labels.includes('pending-deployment')) {
+                candidate = pullCandidate;
+                break;
+              }          
+            }
+            // in case candidate == null (no PR without "pending-deployment) but pullsCandidateForDeployment is not empty, choose random pull request
+            // This is the case where we all pending PR failed deployment at their 1st attempt. we don't want to keep trying the same one.             
+            if (candidate == null && pullsCandidateForDeployment.length > 0) {
+                const idx = Math.floor(Math.random() * pullsCandidateForDeployment.length);
+                candidate = pullsCandidateForDeployment[idx];
+            }
+            if (candidate != null ) {
+              await updateLabelToIssue(issueKey, 'add', 'pending-deployment', candidate.pull.number);
+              return JSON.stringify(candidate);
+            } else {
+              return {"valid": 0};
+            }
+      
+      - name: 'process script output'
+        id: script-output
+        env:
+          RES: ${{steps.auto-merge.outputs.result}}
+        run: |
+          valid=$(echo "$RES"  |  jq '.valid // empty' )
+          title=$(echo "$RES"  |  jq '.pull.title // empty' )
+          number=$(echo "$RES" |  jq '.pull.number // empty'  )
+          branch=$(echo "$RES" |  jq '.head.ref // empty')
+          issKey=$(echo "$RES" |  jq '.issueKey // empty')
+          
+          echo "::set-output name=valid ::$valid" 
+          echo "::set-output name=title::$title" 
+          echo "::set-output name=number::$number" 
+          echo "::set-output name=branch::$branch"
+          echo "::set-output name=issueKey::$issKey"      
+          
+      - name: 'Ticket pending deployment exist'
+        id: pending-deployment
+        uses: haya14busa/action-cond@v1
+        with:
+          cond: ${{ steps.script-output.outputs.valid == 1 }}
+          if_true: true
+          if_false: false
+      - name: 'Echo deployment details'
+        if: ${{ steps.pending-deployment.outputs.value }}
+        run: |
+          echo 'Issue key: ${{steps.script-output.outputs.issueKey}}'
+          echo 'PR title: ${{steps.script-output.outputs.title}}'
+          echo 'PR number: ${{steps.script-output.outputs.number}}'
+          echo 'PR head branch: ${{steps.script-output.outputs.branch}}'
+      - name: 'Checkout source code'
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: actions/checkout@v2
+        ref: ${{steps.script-output.outputs.branch}}
+      - name: "Look for manifest file"
+        id: get-manifest-file-existence
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "sfdx/manifest/${{steps.script-output.outputs.issueKey}}.xml"
+      - name: 'Assert manifest file exists'
+        if: ${{ steps.pending-deployment.outputs.value && steps.get-manifest-file-existence.outputs.files_exists != 'true'}} 
+        run: |
+          echo 'Manifest file manifest/${{steps.script-output.outputs.issueKey}}.xml is missing. Nothing to deploy.'
+          ls -la /home/runner/work/think3-salesforce/xo-hiring
+          exit 1
+      - name: "Look for destructive manifest file"
+        id: get-destructive-manifest-file-existence
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "sfdx/manifest/${{steps.script-output.outputs.issueKey}}.destructive.xml"
+      - name: 'Get destructive change parameter'
+        id: get-destructive-change-parameter
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: haya14busa/action-cond@v1
+        with:
+          cond: ${{ steps.get-destructive-manifest-file-existence.outputs.files_exists == 'true' }}
+          if_true: "sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage/"
+          if_false: ""
+      - name: 'Echo destructive manifest parameter'
+        run: |
+          echo 'Destructive folder: ${{ steps.get-destructive-change-parameter.outputs.value }}'
+      - name: 'Create a destructive manifest folder'
+        if: ${{ steps.pending-deployment.outputs.value && steps.get-destructive-manifest-file-existence.outputs.files_exists == 'true' }} 
+        run: |
+          rm -rf sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage &>/dev/null
+          mkdir -p sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage &>/dev/null
+          cp sfdx/manifest/${{steps.script-output.outputs.issueKey}}.destructive.xml sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage/destructiveChanges.xml
+          cat <<EOT > sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage/package.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Package xmlns="http://soap.sforce.com/2006/04/metadata">
+            <version>51</version>
+          </Package>
+          EOT
+          echo 'Destructive package folder created: sfdx/manifest/${{steps.script-output.outputs.issueKey}}-destructivePackage/'
+      - name: "Look for data file"
+        id: get-data-file-existence
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "sfdx/manifest/${{steps.script-output.outputs.issueKey}}.data.apex"
+      - name: 'Get data file parameter'
+        id: get-data-file-parameter
+        if: ${{ steps.pending-deployment.outputs.value }}
+        uses: haya14busa/action-cond@v1
+        with:
+          cond: ${{ steps.get-data-file-existence.outputs.files_exists == 'true' }}
+          if_true: "sfdx/manifest/${{steps.script-output.outputs.issueKey}}.data.apex"
+          if_false: ""
+      - name: 'Echo data file parameter'
+        if: ${{ steps.pending-deployment.outputs.value }}
+        run: |
+          echo 'Data file: ${{ steps.get-data-file-parameter.outputs.value }}'
+      - name: 'Deploy'
+        id: sfdx-deploy
+        uses: trilogy-group/sfdx-orgdev-build-deploy@v3.0
+        with:
+          type: 'production'
+          operation_type: 'deploy'
+          certificate_path: cicd/prod.jwt.server.key.enc
+          decryption_key: ${{ secrets.CICD_DECRYPTION_KEY }}
+          decryption_iv: ${{ secrets.CICD_DECRYPTION_IV }}
+          client_id: ${{ secrets.CICD_CONSUMER_KEY_PROD }}
+          username: ${{ secrets.CICD_USERNAME }}
+          checkonly: ${{ steps.get-deployment-is-check-only.outputs.value }}
+          deploy_wait_time: '90'  # all tests will be run, that takes time.
+          manifest_path: manifest/${{steps.script-output.outputs.issueKey}}.xml
+          deploy_testlevel: RunLocalTests
+          sfdx_root_folder: sfdx
+          destructive_path: ${{ steps.get-destructive-change-parameter.outputs.value }}
+          data_factory: ${{ steps.get-data-file-parameter.outputs.value }}
+          # default_source_path: force-app/main/default
+        continue-on-error: true
+      - name: 'Set Jira ticket label'
+        uses: actionsflow/axios@v1
+        id: set-issue-label
+        # don't set label if we deploy to sandbox rather than staging.
+        if: ${{steps.sfdx-deploy.outcome == 'success'}}
+        with:
+          url: https://rapid-engineering.atlassian.net/rest/api/latest/issue/${{steps.script-output.outputs.issueKey}}
+          basic-auth: ${{secrets.JIRA_MILOS_AUTH}}
+          method: 'PUT'
+          data: '{"update":{"labels":[{"add":"deployed"}]}}'
+      - name: Send failure email
+        if: ${{steps.sfdx-deploy.outcome != 'success' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{secrets.SMTP_HOST}}
+          server_port: ${{secrets.SMTP_PORT}}
+          username: ${{secrets.SMTP_USERNAME}}
+          password: ${{secrets.SMTP_PASSWORD}}
+          subject: '[FAILED] deployment: ${{steps.store-issue-key.outputs.value}} deployment failed.'
+          to: ${{secrets.MAIL_NOTIFICATION_TO}}
+          from: Service User
+          body: 'https://rapid-engineering.atlassian.net/browse/${{steps.store-issue-key.outputs.value}} deployment failed! Please check https://github.com/trilogy-group/think3-salesforce/actions/workflows/prod-deployment.yml for details.'
+          reply_to: ${{secrets.MAIL_NOTIFICATION_TO}}
+          ignore_cert: true
+          
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+      - name: Output check result
+        if: ${{ steps.sfdx-deploy.outcome == 'success' }}
+        run: |
+          echo '${{steps.get-deployment-caption.outputs.value}} was successful.'
+          exit 0
+      - name: Check on failures
+        if: steps.sfdx-deploy.outcome != 'success'
+        run: |
+          echo '${{steps.get-deployment-caption.outputs.value}} failed. See error details in Deploy step and at https://crossover.lightning.force.com/lightning/setup/DeployStatus/home.'
+          exit 1
+          
