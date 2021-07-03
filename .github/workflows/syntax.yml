@@ -175,7 +175,7 @@ jobs:
                    "valid" : 1
                    }
                    pullsCandidateForDeployment.push(candidate);
-				      }
+                }
                   continue;
                 } catch(e) {
                   console.error(`PR #${pull.number}: the merge attempt failed. ${e.message}. `);
@@ -184,8 +184,8 @@ jobs:
                 console.info(`PR #${pull.number}: ticket Accepted but PR is not mergeable yet. SKIP.`);
               }
             }
-		        // In each run (10 minutes), we will pick one ticket for deployment.
-		        // To avoid starvation ticket due to one ticket keep failing, give priorty to other ticket before retrying the same tickets.
+            // In each run (10 minutes), we will pick one ticket for deployment.
+            // To avoid starvation ticket due to one ticket keep failing, give priorty to other ticket before retrying the same tickets.
             let candidate = null;
             for (const pullCandidate of pullsCandidateForDeployment) {
               if (!pullCandidate.labels.includes('pending-deployment')) {
