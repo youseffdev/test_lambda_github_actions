@@ -168,7 +168,7 @@ jobs:
                   await updateLabelToIssue(issueKey, 'add', 'auto-released', pull.number);
                   await updateLabelToIssue(issueKey, 'remove', 'pending-deployment', pull.number);
               } else {
-				          console.info(`PR #${pull.number}: ticket is Accepted and PR is mergeable. But not yet deployed.`);
+                  console.info(`PR #${pull.number}: ticket is Accepted and PR is mergeable. But not yet deployed.`);
                   let candidate = {
                    "pull": pull,
                    "issueKey": issueKey,
