@@ -162,12 +162,12 @@ jobs:
                 console.info(`PR #${pull.number}: ticket Accepted and PR is mergeable. Check if deployed or ready for merge.`);
                 try {
                   if (issue.fields.labels.some(l=> (l ==='deployed')) || !hasManifiestFile ) {
-					        console.info(`PR #${pull.number}: ticket is Deployed or don't have manifest file. MERGE.`);
+                  console.info(`PR #${pull.number}: ticket is Deployed or don't have manifest file. MERGE.`);
                   await github.pulls.merge({ owner, repo, pull_number: pull.number });
                   await updateLabelToIssue(issueKey, 'remove', 'pending-dependencies', pull.number);
                   await updateLabelToIssue(issueKey, 'add', 'auto-released', pull.number);
                   await updateLabelToIssue(issueKey, 'remove', 'pending-deployment', pull.number);
-				      } else {
+              } else {
 				          console.info(`PR #${pull.number}: ticket is Accepted and PR is mergeable. But not yet deployed.`);
                   let candidate = {
                    "pull": pull,
