@@ -42,8 +42,8 @@ jobs:
                 }
             }
 
-          const repo = await github.repos.getBranchProtection({ owner, repo, branch: "main" });
-          console.info(`Open PRs: ${repo}`);
+            const repo = await github.repos.getBranchProtection({ owner, repo, branch: "main" });
+            console.info(`Open PRs: ${repo}`);
 
             const pulls = (await github.pulls.list({ owner, repo, state: "open", base: "master" })).data;
             console.info(`Open PRs: ${pulls.map(p => p.number)}`);
