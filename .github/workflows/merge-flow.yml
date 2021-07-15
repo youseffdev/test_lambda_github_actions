@@ -8,6 +8,15 @@ name: MERGE FLOW CHECK
 # Triggers the workflow on each pull request events regardless of the branch.
 on: [workflow_dispatch, pull_request]
 jobs:
+  manual-qa-check:
+    runs-on: ubuntu-latest
+    name: Label Check
+    steps:
+      - name: Label Check
+        id: label-check
+        uses: mlg87/label-check-action@v1.0.0
+        with:
+          label-name-to-watch-for: "enhancement"
   MERGE-check:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged == true }}
@@ -22,6 +31,7 @@ jobs:
         id: fail_always
         run: |
           exit 1
+    
   OTHERS:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged != true }}
