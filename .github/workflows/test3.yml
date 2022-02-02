@@ -25,6 +25,7 @@ jobs:
                     
       - name: print expression value3
         run: |
+          skipBackend=
           if [ "${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}" == "true" ]; then
             skipBackend="true"
             echo "skipping backend"
@@ -32,6 +33,12 @@ jobs:
           if [ "${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}" == "true" ]; then
             skipBackend="false"
             echo "skipping backend FALSE"
+          fi
+          
+          if [ "$skipBackend" == "true" ]; then
+            echo "skipbackend is TRUE"
+          else
+            echo "skipbackend is FALSE"
           fi
       
           
