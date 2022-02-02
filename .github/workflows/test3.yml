@@ -9,28 +9,30 @@ name: TEST expressions
 on: [workflow_dispatch, pull_request]
 jobs:
   manual-qa-check:
-   - name: print labels
-     run: |
-       echo "${{github.event.pull_request.labels.*.name}}"
-
-   - name: print expression value
-     run: |
-       echo "${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}"
-
-   - name: print expression value2
-     run: |
-       echo "${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}"
-                 
-    - name: print expression value3
-      run: |
-        if [ ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
-          skipBackend="true"
-          echo "skipping backend"
-        fi 
-        if [ ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
-          skipBackend="false"
-          echo "skipping backend FALSE"
-        fi
-
+    runs-on: ubuntu-latest
+    steps:
+      - name: print labels
+        run: |
+          echo "${{github.event.pull_request.labels.*.name}}"
+      
+      - name: print expression value
+        run: |
+          echo "${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}"
+      
+      - name: print expression value2
+        run: |
+          echo "${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}"
+                    
+       - name: print expression value3
+         run: |
+           if [ ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
+             skipBackend="true"
+             echo "skipping backend"
+           fi 
+           if [ ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
+             skipBackend="false"
+             echo "skipping backend FALSE"
+           fi
+      
           
               
