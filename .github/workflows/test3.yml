@@ -23,16 +23,16 @@ jobs:
         run: |
           echo "${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}"
                     
-       - name: print expression value3
-         run: |
-           if [ ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
-             skipBackend="true"
-             echo "skipping backend"
-           fi 
-           if [ ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
-             skipBackend="false"
-             echo "skipping backend FALSE"
-           fi
+      - name: print expression value3
+        run: |
+          if [ ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
+            skipBackend="true"
+            echo "skipping backend"
+          fi 
+          if [ ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-backend-deployment') }}]; then
+            skipBackend="false"
+            echo "skipping backend FALSE"
+          fi
       
           
               
