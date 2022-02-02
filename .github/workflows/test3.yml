@@ -36,9 +36,9 @@ jobs:
           fi
           
           if [ "$skipBackend" == "true" ]; then
-            echo "skipbackend is TRUE"
+            echo "skipbackend is TRUE ${skipbackend:+--skip-frontend-deploy --fff --ggg -hhh} "
           else
-            echo "skipbackend is FALSE"
+            echo "skipbackend is FALSE "
           fi
       
           
